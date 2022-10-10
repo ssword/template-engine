@@ -1,3 +1,5 @@
+use std::env::var;
+
 // Each line in input can be of one of following types
 #[derive(PartialEq, Debug)]
 pub enum ContentType {
@@ -46,7 +48,41 @@ pub fn get_content_type(input_line: &str) -> ContentType {
     return_val
 }
 
+pub fn check_symbol_string(input: &str, symbol: &str) -> bool {
+    input.contains(symbol)
+}
 
+pub fn check_matching_pair(input: &str, left_symbol: &str, right_symbol: &str) -> bool {
+    input.contains(left_symbol) && input.contains(right_symbol)
+}
+
+pub fn get_expression_data(input_line: &str) -> ExpressionData {
+    let (_h, i) = get_index_for_symbol(input_line, "{");
+    let head = input_line[0..i].to_string();
+    let (_j, k)  = get_index_for_symbol(input_line, "}");
+    let variable = input_line[i + 1 + 1 .. k].to_string();
+    let tail = input_line[k + 1 + 1..].to_string;
+
+    ExpressionData {
+        head: Some(head),
+        variable,
+        tail: Some(tail),
+    }
+}
+
+pub fn get_index_for_symbol(input: &str, symbol: char) -> (bool, usize) {
+    let mut characters = input.char_indices();
+    let mut does_exist = false;
+    let mut index = 0;
+    while let some((c, d)) = characters.next() {
+        if d == symbol {
+            does_exist = true;
+            index = c;
+            break;
+        }
+    }
+    (does_exist, index)
+}
 
 #[cfg(test)]
 mod tests {
@@ -86,5 +122,31 @@ mod tests {
             ContentType::Tag(TagType::IfTag),
             get_content_type("{% if name == 'bob' %}")
         );
+    }
+
+    #[test]
+    fn check_symbol_string_test() {
+        assert_eq!(true, check_symbol_string("{{Hello}}}", "{{"));
+    }
+
+    #[test]
+    fn check_symbol_pair_test() {
+        assert_eq!(true, check_matching_pair("{{Hello}}", "{{", "}}"));
+    }
+
+    #[test]
+    fn check_get_expression_data_test() {
+        let expression_data = ExpressionData {
+            head: Some("Hi ".to_string()),
+            variable: "name".to_string(),
+            tail: Some(" ,welcome".to_string()),
+        };
+
+        assert_eq!(expression_data, get_expression_data("Hi {{name}} , welcome"));
+    }
+
+    #[test]
+    fn check_get_index_for_symbol_test() {
+        assert_eq!((true, 3), get_index_for_symbol("Hi {name}, welcome", "{"));
     }
 }
