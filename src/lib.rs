@@ -1,4 +1,5 @@
 use std::env::var;
+use std::collections::HashMap;
 
 // Each line in input can be of one of following types
 #[derive(PartialEq, Debug)]
@@ -57,11 +58,11 @@ pub fn check_matching_pair(input: &str, left_symbol: &str, right_symbol: &str) -
 }
 
 pub fn get_expression_data(input_line: &str) -> ExpressionData {
-    let (_h, i) = get_index_for_symbol(input_line, "{");
+    let (_h, i) = get_index_for_symbol(input_line, '{');
     let head = input_line[0..i].to_string();
-    let (_j, k)  = get_index_for_symbol(input_line, "}");
+    let (_j, k)  = get_index_for_symbol(input_line, '}');
     let variable = input_line[i + 1 + 1 .. k].to_string();
-    let tail = input_line[k + 1 + 1..].to_string;
+    let tail = input_line[k + 1 + 1..].to_string();
 
     ExpressionData {
         head: Some(head),
@@ -74,7 +75,7 @@ pub fn get_index_for_symbol(input: &str, symbol: char) -> (bool, usize) {
     let mut characters = input.char_indices();
     let mut does_exist = false;
     let mut index = 0;
-    while let some((c, d)) = characters.next() {
+    while let Some((c, d)) = characters.next() {
         if d == symbol {
             does_exist = true;
             index = c;
@@ -82,6 +83,24 @@ pub fn get_index_for_symbol(input: &str, symbol: char) -> (bool, usize) {
         }
     }
     (does_exist, index)
+}
+
+pub fn generate_html_template_var(content: ExpressionData, context: HashMap<String, String>) -> String {
+    let mut html = String::new();
+
+    if let Some(h) = content.head {
+        html.push_str(&h);
+    }
+
+    if let Some(val) = context.get(&content.variable) {
+        html.push_str(&val);
+    }
+
+    if let Some(t) = content.tail {
+        html.push_str(&t);
+    }
+
+    html
 }
 
 #[cfg(test)]
